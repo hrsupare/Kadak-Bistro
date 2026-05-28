@@ -250,7 +250,7 @@ const AdminLayout = () => {
         )}
 
         {/* Dynamic viewport */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 no-scrollbar bg-bg-surface transition-colors duration-300">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8 no-scrollbar bg-bg-surface transition-colors duration-300">
           <Outlet />
         </main>
       </div>
@@ -263,7 +263,7 @@ const AdminLayout = () => {
             onClick={() => setShowNotifDrawer(false)}
           />
           
-          <div className="relative w-80 sm:w-96 bg-bg-card shadow-2xl h-full flex flex-col animate-slide-up p-5 border-l border-border-theme transition-colors duration-300">
+          <div className="relative w-full max-w-md bg-bg-card shadow-2xl h-full flex flex-col p-5 border-l border-border-theme transition-colors duration-300">
             <div className="flex items-center justify-between border-b border-border-theme pb-3.5 mb-4 flex-shrink-0">
               <div className="flex items-center space-x-2 text-primary text-left">
                 <Bell size={18} className="animate-pulse" />
@@ -342,6 +342,33 @@ const AdminLayout = () => {
           </div>
         </div>
       )}
+      
+      {/* Mobile Sticky Bottom Nav Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-bg-card/90 backdrop-blur-xl border-t border-border-theme flex lg:hidden items-center justify-around py-2 px-2 shadow-lg rounded-t-[20px] transition-colors duration-300">
+        {menuItems.filter(item => ['Dashboard', 'Live Orders', 'Food Menu', 'Analytics', 'Settings'].includes(item.label)).map((item) => {
+          const isActive = location.pathname === item.path;
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`flex flex-col items-center justify-center py-1 px-3.5 rounded-xl transition-all cursor-pointer relative ${
+                isActive 
+                  ? 'text-primary font-bold' 
+                  : 'text-text-muted hover:text-text-sub'
+              }`}
+            >
+              <Icon size={18} />
+              <span className="text-[8px] font-black uppercase tracking-wider mt-1">{item.label.replace('Live ', '').replace(' Food', '')}</span>
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="absolute top-0 right-2.5 bg-primary text-white text-[8px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center shadow">
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 };

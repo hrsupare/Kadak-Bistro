@@ -134,8 +134,10 @@ const CategoryManagementPage = () => {
       )}
 
       {/* Grid of categories with manual move up/down */}
-      <section className="bg-bg-card rounded-card shadow-sm border border-border-theme overflow-hidden">
-        <div className="overflow-x-auto no-scrollbar">
+      <section className="bg-transparent lg:bg-bg-card lg:rounded-card lg:shadow-sm lg:border lg:border-border-theme overflow-hidden">
+        
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto no-scrollbar">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-bg-surface text-text-muted font-bold uppercase tracking-wider border-b border-border-theme">
@@ -256,6 +258,119 @@ const CategoryManagementPage = () => {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Stacked Card View */}
+        <div className="block lg:hidden space-y-4">
+          {categories.map((cat, idx) => {
+            const isEditing = editId === cat.id;
+
+            return (
+              <div 
+                key={cat.id} 
+                className="bg-bg-card border border-border-theme rounded-card p-4 shadow-sm flex flex-col space-y-3.5 text-left transition-colors duration-300"
+              >
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                  {isEditing ? (
+                    <div className="flex items-center space-x-2 w-full">
+                      <input 
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="flex-1 bg-bg-surface border border-primary px-3 py-1.5 rounded-lg text-xs font-bold outline-none text-text-main"
+                        required
+                      />
+                      <button 
+                        onClick={handleEditSave}
+                        className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 cursor-pointer"
+                      >
+                        <Check size={14} strokeWidth={3} />
+                      </button>
+                      <button 
+                        onClick={() => setEditId(null)}
+                        className="p-2 rounded-lg border border-border-theme text-text-muted hover:bg-bg-surface"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-bg-surface text-text-sub flex items-center justify-center border border-border-theme">
+                        {cat.icon ? getIcon(cat.icon) : <Grid size={15} />}
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-sm text-text-main m-0 leading-none">{cat.name}</h4>
+                        <span className="text-[9px] font-mono text-text-muted mt-1.5 block leading-none">{cat.id}</span>
+                      </div>
+                      {cat.id === 'all' && (
+                        <span className="text-[8px] font-black uppercase tracking-wider bg-bg-surface text-text-sub px-1.5 py-0.5 rounded border border-border-theme leading-none">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Actions (Edit/Delete) */}
+                  {!isEditing && (
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        onClick={() => handleEditStart(cat)}
+                        className="p-2 rounded-xl border border-border-theme hover:border-primary text-text-sub hover:text-primary transition-colors bg-bg-surface cursor-pointer"
+                        title="Rename category"
+                      >
+                        <Edit size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(cat.id, cat.name)}
+                        disabled={cat.id === 'all'}
+                        className={`p-2 rounded-xl border transition-colors bg-bg-surface ${
+                          cat.id === 'all'
+                            ? 'border-border-theme text-text-muted opacity-30 cursor-not-allowed'
+                            : 'border-border-theme hover:border-red-500 text-text-sub hover:text-red-500 cursor-pointer'
+                        }`}
+                        title="Delete category"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer Ranking swaps */}
+                <div className="border-t border-border-theme pt-3.5 flex justify-between items-center">
+                  <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Position: #{idx + 1}</span>
+                  
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleSwap(idx, -1)}
+                      disabled={idx === 0}
+                      className={`px-3 py-1.5 rounded-lg border transition-all flex items-center space-x-1 font-black text-[10px] uppercase tracking-wider ${
+                        idx === 0
+                          ? 'border-border-theme text-text-muted opacity-30 cursor-not-allowed'
+                          : 'border-border-theme hover:border-primary text-text-muted hover:text-primary bg-bg-surface cursor-pointer'
+                      }`}
+                    >
+                      <ArrowUp size={11} />
+                      <span>Up</span>
+                    </button>
+                    <button
+                      onClick={() => handleSwap(idx, 1)}
+                      disabled={idx === categories.length - 1}
+                      className={`px-3 py-1.5 rounded-lg border transition-all flex items-center space-x-1 font-black text-[10px] uppercase tracking-wider ${
+                        idx === categories.length - 1
+                          ? 'border-border-theme text-text-muted opacity-30 cursor-not-allowed'
+                          : 'border-border-theme hover:border-primary text-text-muted hover:text-primary bg-bg-surface cursor-pointer'
+                      }`}
+                    >
+                      <ArrowDown size={11} />
+                      <span>Down</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

@@ -168,8 +168,10 @@ const FoodManagementPage = () => {
       </section>
 
       {/* Catalog lists Table */}
-      <section className="bg-bg-card rounded-card shadow-sm border border-border-theme overflow-hidden">
-        <div className="overflow-x-auto no-scrollbar">
+      <section className="bg-transparent lg:bg-bg-card lg:rounded-card lg:shadow-sm lg:border lg:border-border-theme overflow-hidden">
+        
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto no-scrollbar">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-bg-surface text-text-muted font-bold uppercase tracking-wider border-b border-border-theme">
@@ -266,6 +268,92 @@ const FoodManagementPage = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Stacked Card View */}
+        <div className="block lg:hidden space-y-4">
+          {filteredInventory.length === 0 ? (
+            <div className="bg-bg-card rounded-card p-12 text-center text-text-muted border border-border-theme">
+              <Utensils className="mx-auto mb-2 text-text-muted" size={28} />
+              <p className="font-semibold text-xs">No foods available matching filters.</p>
+            </div>
+          ) : (
+            filteredInventory.map((item) => (
+              <div 
+                key={item.id} 
+                className="bg-bg-card border border-border-theme rounded-card p-4 shadow-sm flex flex-col space-y-3.5 text-left transition-colors duration-300"
+              >
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center space-x-3 text-left">
+                    <img 
+                      src={item.image} 
+                      alt={item.name} 
+                      className="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-border-theme"
+                    />
+                    <div>
+                      <h4 className="font-extrabold text-sm text-text-main m-0 leading-tight">{item.name}</h4>
+                      <div className="flex items-center space-x-2 mt-1.5">
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider leading-none ${
+                          item.isVeg ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-500'
+                        }`}>
+                          {item.isVeg ? 'Veg' : 'Non-Veg'}
+                        </span>
+                        <span className="text-[9px] text-text-muted font-bold capitalize leading-none bg-bg-surface px-1.5 py-0.5 rounded border border-border-theme">
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      onClick={() => handleOpenEdit(item)}
+                      className="p-2 rounded-xl border border-border-theme hover:border-primary text-text-sub hover:text-primary transition-colors bg-bg-surface cursor-pointer"
+                      title="Edit dish"
+                    >
+                      <Edit size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id, item.name)}
+                      className="p-2 rounded-xl border border-border-theme hover:border-red-500 text-text-sub hover:text-red-500 transition-colors bg-bg-surface cursor-pointer"
+                      title="Delete dish"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Pricing Grid */}
+                <div className="grid grid-cols-2 gap-2 text-xs py-2.5 border-t border-b border-border-theme">
+                  <div>
+                    <p className="text-[9px] text-text-muted font-bold uppercase tracking-wider">Regular Price</p>
+                    <p className="font-extrabold text-text-main font-mono mt-0.5">₹{item.price}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-text-muted font-bold uppercase tracking-wider">Sale Price</p>
+                    <p className="font-extrabold text-primary font-mono mt-0.5">
+                      {item.discountPrice ? `₹${item.discountPrice}` : '—'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Stock Status Large Button */}
+                <button
+                  onClick={() => handleStockToggle(item.id, item.inStock)}
+                  className={`w-full py-2.5 rounded-btn flex items-center justify-center space-x-2 font-black text-xs uppercase border transition-colors cursor-pointer ${
+                    item.inStock
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
+                      : 'bg-red-500/10 border-red-500/30 text-red-500'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${item.inStock ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  <span>{item.inStock ? 'In Stock (Tap to Toggle)' : 'Out of Stock (Tap to Toggle)'}</span>
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </section>
 
       {/* Visual form slider panel drawer */}
@@ -277,7 +365,7 @@ const FoodManagementPage = () => {
             onClick={() => setDrawerOpen(false)}
           />
 
-          <div className="relative w-full max-w-md bg-bg-card shadow-2xl h-full flex flex-col p-6 animate-slide-up no-scrollbar overflow-y-auto">
+          <div className="relative w-full max-w-full sm:max-w-md bg-bg-card shadow-2xl h-full flex flex-col p-6 animate-slide-up no-scrollbar overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border-theme pb-3.5 mb-5 flex-shrink-0">
               <div className="flex items-center space-x-2">

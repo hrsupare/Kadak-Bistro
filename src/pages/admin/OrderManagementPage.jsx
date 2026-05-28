@@ -218,13 +218,13 @@ const OrderManagementPage = () => {
                   <div className="grid grid-cols-2 gap-2 text-xs font-bold uppercase tracking-wider">
                     <button
                       onClick={() => handleStatusChange(order.id, 'Cancelled')}
-                      className="py-2.5 border border-red-200 dark:border-red-950/40 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all cursor-pointer text-center"
+                      className="py-3 border border-red-200 dark:border-red-950/40 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-btn transition-all cursor-pointer text-center"
                     >
                       Reject
                     </button>
                     <button
                       onClick={() => handleStatusChange(order.id, 'Preparing')}
-                      className="py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl transition-all cursor-pointer text-center shadow-sm flex items-center justify-center space-x-1"
+                      className="py-3 bg-primary hover:bg-primary-hover text-white rounded-btn transition-all cursor-pointer text-center shadow-sm flex items-center justify-center space-x-1"
                     >
                       <Play size={12} fill="currentColor" />
                       <span>Accept</span>
@@ -235,7 +235,7 @@ const OrderManagementPage = () => {
                 {order.status === 'Preparing' && (
                   <button
                     onClick={() => handleStatusChange(order.id, 'Ready')}
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-black py-2.5 rounded-xl transition-colors cursor-pointer uppercase tracking-wider flex items-center justify-center space-x-1.5"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-black py-3 rounded-btn transition-colors cursor-pointer uppercase tracking-wider flex items-center justify-center space-x-1.5"
                   >
                     <Sparkles size={14} />
                     <span>Mark as Food Ready</span>
@@ -245,7 +245,7 @@ const OrderManagementPage = () => {
                 {order.status === 'Ready' && (
                   <button
                     onClick={() => handleStatusChange(order.id, 'Completed')}
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black py-2.5 rounded-xl transition-colors cursor-pointer uppercase tracking-wider flex items-center justify-center space-x-1"
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black py-3 rounded-btn transition-colors cursor-pointer uppercase tracking-wider flex items-center justify-center space-x-1"
                   >
                     <Check size={14} strokeWidth={3} />
                     <span>Serve & Settle Ticket</span>
@@ -253,7 +253,7 @@ const OrderManagementPage = () => {
                 )}
 
                 {(order.status === 'Completed' || order.status === 'Cancelled') && (
-                  <div className="p-2 bg-bg-surface rounded-xl text-text-muted text-[10px] font-bold text-center border border-border-theme">
+                  <div className="p-2.5 bg-bg-surface rounded-btn text-text-muted text-[10px] font-bold text-center border border-border-theme">
                     Ticket Closed (Order {order.status})
                   </div>
                 )}
