@@ -108,29 +108,86 @@ export const AppProvider = ({ children }) => {
     }
   }, [isDarkMode]);
 
-  // --- AUDIO SOUND NOTIFICATION SIMULATION ---
+  // --- AUDIO & VOICE NOTIFICATION ENGINE ---
+
+  // Warm two-tone bell chime using Web Audio API (no external files needed)
   const triggerAudioAlert = () => {
     if (!settings.soundNotifications) return;
     setPlayTrigger(prev => !prev);
-    // Simple oscillator beep for responsive web audio api without external files
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const t = audioCtx.currentTime;
 
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      const playTone = (freq, startTime, duration, peakVol = 0.18) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(peakVol, startTime + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      gain.gain.setValueAtTime(0, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
-
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + 0.65);
+      // Bell-like two-tone chime: C6 → G5 with slight delay
+      playTone(1046.50, t, 0.7, 0.16);        // C6 – high bright ding
+      playTone(783.99, t + 0.18, 0.8, 0.12);  // G5 – warm resonant follow
+      playTone(1046.50, t + 0.55, 0.5, 0.08); // C6 repeat softer trail
     } catch (e) {
-      console.warn("Audio Context beep suppressed or block by browser autoplay policies.", e);
+      console.warn('Audio chime blocked by browser autoplay policy.', e);
+    }
+  };
+
+  // SpeechSynthesis voice announcement
+  const speakOrder = (order) => {
+    if (!settings.voiceEnabled) return;
+    if (!('speechSynthesis' in window)) return;
+
+    // Cancel any prior utterances to avoid queue buildup
+    window.speechSynthesis.cancel();
+
+    const messages = [
+      `Attention! New order received for Table ${order.tableNumber}.`,
+      `${order.customerName} has placed an order for ${order.items.length} item${order.items.length > 1 ? 's' : ''}.`,
+      `Order total is Rupees ${Math.round(order.grandTotal)}.`,
+      `Please review the order and begin preparation.`
+    ];
+
+    const fullMessage = messages.join(' ');
+    const utterance = new SpeechSynthesisUtterance(fullMessage);
+    utterance.rate = 0.88;
+    utterance.pitch = 1.05;
+    utterance.volume = 1;
+    utterance.lang = 'en-US';
+
+    // Prefer a female voice, fallback to system default
+    const setVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v =>
+        (v.name.toLowerCase().includes('female') ||
+         v.name.includes('Samantha') ||
+         v.name.includes('Google UK English Female') ||
+         v.name.includes('Microsoft Zira') ||
+         v.name.includes('Karen') ||
+         v.name.includes('Moira') ||
+         v.name.includes('Victoria'))
+        && v.lang.startsWith('en')
+      ) || voices.find(v => v.lang.startsWith('en'));
+      if (preferred) utterance.voice = preferred;
+      window.speechSynthesis.speak(utterance);
+    };
+
+    // Voices may not be loaded synchronously on first call
+    if (window.speechSynthesis.getVoices().length > 0) {
+      setVoice();
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        setVoice();
+        window.speechSynthesis.onvoiceschanged = null;
+      };
     }
   };
 
@@ -302,8 +359,9 @@ export const AppProvider = ({ children }) => {
     };
     setNotifications(prev => [newNotif, ...prev]);
 
-    // Simulate real audio bell chime for Admin
+    // Trigger bell chime + voice announcement for Admin
     triggerAudioAlert();
+    speakOrder(newOrder);
 
     // Clear Customer cart
     clearCart();
@@ -461,6 +519,7 @@ export const AppProvider = ({ children }) => {
       clearAllNotifications,
       addSystemNotification,
       triggerAudioAlert,
+      speakOrder,
 
       // Calculations
       getCartSubtotal,

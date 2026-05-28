@@ -5,6 +5,7 @@ import {
   LayoutDashboard, ClipboardList, Utensils, Layers, BarChart3, 
   Bell, Settings, LogOut, Sun, Moon, Menu, X, Volume2, VolumeX, ShieldCheck
 } from 'lucide-react';
+import OrderToastNotification from '../components/OrderToastNotification';
 
 const AdminLayout = () => {
   const { 
@@ -369,6 +370,9 @@ const AdminLayout = () => {
           );
         })}
       </nav>
+
+      {/* Order Toast Notification + Demo Button — always mounted on admin pages */}
+      <OrderToastNotification />
     </div>
   );
 };

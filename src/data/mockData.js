@@ -345,7 +345,8 @@ export const INITIAL_SETTINGS = {
   deliveryCharge: 0, // QR counter table dining
   timings: '11:00 AM - 11:30 PM',
   isDarkTheme: false,
-  soundNotifications: true
+  soundNotifications: true,
+  voiceEnabled: true
 };
 
 export const INITIAL_ORDERS = [

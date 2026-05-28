@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Settings, Check, QrCode, Copy, ExternalLink, 
-  Table2, ShieldCheck, Volume2, X 
+  Table2, ShieldCheck, Volume2, VolumeX, X, Mic, MicOff, Bell, BellOff, Zap
 } from 'lucide-react';
 
 
@@ -45,6 +45,57 @@ const SettingsPage = () => {
     setTimeout(() => {
       setSaveSuccess(false);
     }, 3000);
+  };
+
+  const handleTestVoice = () => {
+    if (!('speechSynthesis' in window)) {
+      alert('Your browser does not support the Web Speech API. Please use Chrome or Edge.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const msg = new SpeechSynthesisUtterance(
+      'Voice notifications are active. Attention! New order received for Table 5. 2 items ordered. Please begin preparation.'
+    );
+    msg.rate = 0.88;
+    msg.pitch = 1.05;
+    msg.volume = 1;
+    msg.lang = 'en-US';
+    const setVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v =>
+        (v.name.toLowerCase().includes('female') ||
+          v.name.includes('Samantha') ||
+          v.name.includes('Microsoft Zira') ||
+          v.name.includes('Google UK English Female') ||
+          v.name.includes('Karen') || v.name.includes('Moira'))
+        && v.lang.startsWith('en')
+      ) || voices.find(v => v.lang.startsWith('en'));
+      if (preferred) msg.voice = preferred;
+      window.speechSynthesis.speak(msg);
+    };
+    if (window.speechSynthesis.getVoices().length > 0) setVoice();
+    else { window.speechSynthesis.onvoiceschanged = () => { setVoice(); window.speechSynthesis.onvoiceschanged = null; }; }
+  };
+
+  const handleTestChime = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const t = ctx.currentTime;
+      const play = (freq, start, dur, vol = 0.15) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        g.gain.setValueAtTime(0, start);
+        g.gain.linearRampToValueAtTime(vol, start + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+        osc.start(start); osc.stop(start + dur);
+      };
+      play(1046.50, t, 0.7, 0.16);
+      play(783.99, t + 0.18, 0.8, 0.12);
+      play(1046.50, t + 0.55, 0.5, 0.08);
+    } catch(e) { console.warn(e); }
   };
 
   const getTableLink = (tableNum) => {
@@ -251,6 +302,104 @@ const SettingsPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Voice & Sound Notification Settings Card */}
+      <div className="bg-bg-card rounded-card p-5 shadow-sm border border-border-theme">
+        <div className="flex items-center space-x-2 mb-4">
+          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <Bell size={16} />
+          </div>
+          <div className="text-left">
+            <h3 className="text-xs font-black uppercase text-text-main tracking-wider m-0">Voice &amp; Sound Notifications</h3>
+            <p className="text-[10px] text-text-muted font-semibold mt-0.5">Configure audio alerts for incoming orders. Requires one user interaction to unlock browser audio.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          {/* Sound Chime Toggle */}
+          <div className="bg-bg-surface rounded-2xl p-4 border border-border-theme">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                  settings.soundNotifications ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-500'
+                }`}>
+                  {settings.soundNotifications ? <Volume2 size={17} /> : <VolumeX size={17} />}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-black text-text-main m-0">Bell Chime</p>
+                  <p className="text-[10px] text-text-muted font-semibold">Two-tone audio alert</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings(prev => ({ ...prev, soundNotifications: !prev.soundNotifications }))}
+                className={`relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer focus:outline-none ${
+                  settings.soundNotifications ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-300 ${
+                  settings.soundNotifications ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </button>
+            </div>
+            {settings.soundNotifications && (
+              <button
+                onClick={handleTestChime}
+                className="mt-3 w-full py-2 text-[10px] font-black uppercase tracking-wider border border-border-theme rounded-xl text-text-sub hover:bg-bg-card hover:border-primary hover:text-primary transition-all cursor-pointer flex items-center justify-center space-x-1"
+              >
+                <Volume2 size={11} />
+                <span>Test Chime</span>
+              </button>
+            )}
+          </div>
+
+          {/* Voice Announcement Toggle */}
+          <div className="bg-bg-surface rounded-2xl p-4 border border-border-theme">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                  settings.voiceEnabled ? 'bg-primary/10 text-primary' : 'bg-red-500/10 text-red-500'
+                }`}>
+                  {settings.voiceEnabled ? <Mic size={17} /> : <MicOff size={17} />}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-black text-text-main m-0">Voice Alerts</p>
+                  <p className="text-[10px] text-text-muted font-semibold">Speech announcement</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSettings(prev => ({ ...prev, voiceEnabled: !prev.voiceEnabled }))}
+                className={`relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer focus:outline-none ${
+                  settings.voiceEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-600'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-300 ${
+                  settings.voiceEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </button>
+            </div>
+            {settings.voiceEnabled && (
+              <button
+                onClick={handleTestVoice}
+                className="mt-3 w-full py-2 text-[10px] font-black uppercase tracking-wider border border-primary/30 rounded-xl text-primary hover:bg-primary/5 transition-all cursor-pointer flex items-center justify-center space-x-1"
+              >
+                <Mic size={11} />
+                <span>Test Voice</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Info Banner */}
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-3 flex items-start space-x-2.5">
+          <Zap size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="text-left">
+            <p className="text-[10px] font-black text-amber-700 dark:text-amber-400 m-0 uppercase tracking-wide">Browser Autoplay Policy</p>
+            <p className="text-[10px] text-amber-600 dark:text-amber-500 font-semibold mt-1 leading-relaxed">
+              Audio and voice requires at least one user interaction (click or tap) before the browser unlocks these APIs. Once you click <em>Enable Sound</em> or the toggle above, all subsequent notifications will play automatically.
+            </p>
           </div>
         </div>
       </div>
